@@ -15,8 +15,8 @@ struct EmojiArtModel{
     struct Emoji: Identifiable, Hashable {
         var text: String
         // we use Int because we wan't to different model from view
-        var x: Int
-        var y: Int
+        var x: Int  // offset from the center
+        var y: Int  // offset from the center
         var size: Int
         let id: Int
         fileprivate init(text: String, x: Int, y: Int, size: Int, id: Int){

@@ -11,6 +11,8 @@ class EmojiArtDocument: ObservableObject{
     @Published private(set) var emojiArtModel:EmojiArtModel
     init(){
         emojiArtModel = EmojiArtModel()
+        emojiArtModel.addEmoji("🚀", at: (-200, 100), size: 80)
+        emojiArtModel.addEmoji("😘", at: (50, -200), size: 50)
     }
     var emojis: [EmojiArtModel.Emoji] {emojiArtModel.emojis}
     
@@ -24,6 +26,10 @@ class EmojiArtDocument: ObservableObject{
     
     func addEmoji(_ emoji:String, x:Int, y:Int, size:CGFloat){
         emojiArtModel.addEmoji(emoji, at: (x, y), size: Int(size))
+    }
+    
+    func addEmoji(_ emoji: String, at location: (x: Int, y: Int), size: CGFloat){
+        emojiArtModel.addEmoji(emoji, at: location, size: Int(size))
     }
     
     // move emoji from one to another
