@@ -8,7 +8,15 @@
 import SwiftUI
 
 class EmojiArtDocument: ObservableObject{
-    @Published private(set) var emojiArtModel:EmojiArtModel
+    @Published private(set) var emojiArtModel:EmojiArtModel{
+        didSet{
+            if emojiArtModel.background != oldValue.background{
+                fetchBackgorundImageDataIfNecessary()
+            }
+        }
+    }
+    
+    
     init(){
         emojiArtModel = EmojiArtModel()
         emojiArtModel.addEmoji("🚀", at: (-200, 100), size: 80)
@@ -18,10 +26,47 @@ class EmojiArtDocument: ObservableObject{
     
     var background: EmojiArtModel.Background {emojiArtModel.background}
     
+    @Published var backgroundImage: UIImage?
+    @Published var backgroundFecthStatus = BackgroundImageFetchStatus.idle
+    
+    enum BackgroundImageFetchStatus{
+        case idle
+        case fetching
+    }
+    
+    
+    
+    private func fetchBackgorundImageDataIfNecessary(){
+        backgroundImage = nil
+        switch emojiArtModel.background{
+        case .url(let url):
+            // fetch the url
+            backgroundFecthStatus = .fetching
+            DispatchQueue.global(qos: .userInitiated).async {
+                let imageData = try? Data(contentsOf: url)  // this will block the whole program
+                DispatchQueue.main.async { [weak self] in
+                    if self?.background == EmojiArtModel.Background.url(url){
+                        self?.backgroundFecthStatus = .idle
+                        if imageData != nil{
+                            // we should only change ui in main thread
+                            self?.backgroundImage = UIImage(data: imageData!)
+                        }
+                    }
+                }
+            }
+        case .imageData(let data):
+            backgroundImage = UIImage(data: data)
+        case .blank:
+            break
+        }
+        
+    }
+    
     // MARK: - Intent(s)
     // includes setBackground addEmoji moveEmoji scaleEmoji and so on
     func setBackground(_ background:EmojiArtModel.Background){
         emojiArtModel.background = background
+        print("background set to \(background) ")
     }
     
     func addEmoji(_ emoji:String, x:Int, y:Int, size:CGFloat){
