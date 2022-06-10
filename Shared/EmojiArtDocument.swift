@@ -55,7 +55,17 @@ class EmojiArtDocument: ObservableObject{
                 }
             }
         case .imageData(let data):
-            backgroundImage = UIImage(data: data)
+            backgroundFecthStatus = .fetching
+            DispatchQueue.global(qos: .userInitiated).async {
+                let imageData = data
+                sleep(2)
+                DispatchQueue.main.async { [weak self] in
+                    if self?.background == EmojiArtModel.Background.imageData(data){
+                        self?.backgroundFecthStatus = .idle
+                        self?.backgroundImage = UIImage(data: imageData)
+                    }
+                }
+            }
         case .blank:
             break
         }
