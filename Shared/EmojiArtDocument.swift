@@ -8,20 +8,6 @@
 import SwiftUI
 
 class EmojiArtDocument: ObservableObject{
-    @Published private(set) var emojiArtModel:EmojiArtModel{
-        didSet{
-            if emojiArtModel.background != oldValue.background{
-                fetchBackgorundImageDataIfNecessary()
-            }
-        }
-    }
-    
-    
-    init(){
-        emojiArtModel = EmojiArtModel()
-        emojiArtModel.addEmoji("🚀", at: (-200, 100), size: 80)
-        emojiArtModel.addEmoji("😘", at: (50, -200), size: 50)
-    }
     var emojis: [EmojiArtModel.Emoji] {emojiArtModel.emojis}
     
     var background: EmojiArtModel.Background {emojiArtModel.background}
@@ -34,7 +20,26 @@ class EmojiArtDocument: ObservableObject{
         case fetching
     }
     
+    @Published private(set) var emojiArtModel:EmojiArtModel{
+        didSet{
+            autosave()
+            if emojiArtModel.background != oldValue.background{
+                fetchBackgorundImageDataIfNecessary()
+            }
+        }
+    }
     
+    
+    init(){
+        if let url = Autosave.autosaveURL, let autosaveEmojiArt = try? EmojiArtModel(url: url){
+            emojiArtModel = autosaveEmojiArt
+            fetchBackgorundImageDataIfNecessary()
+        }else{
+            emojiArtModel = EmojiArtModel()
+            emojiArtModel.addEmoji("🚀", at: (-200, 100), size: 80)
+            emojiArtModel.addEmoji("😘", at: (50, -200), size: 50)
+        }
+    }
     
     private func fetchBackgorundImageDataIfNecessary(){
         backgroundImage = nil
@@ -72,6 +77,34 @@ class EmojiArtDocument: ObservableObject{
         
     }
     
+    private struct Autosave{
+        static let autosaveFilename = "Autosave.emojiart"
+        static var autosaveURL: URL? {
+            let documentDirection = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first  // in mac we also use .networkDomainMask
+            return documentDirection?.appendingPathComponent(autosaveFilename)
+        }
+    }
+    
+    private func autosave(){
+        if let url = Autosave.autosaveURL{
+            save(to: url)
+        }
+    }
+    
+    private func save(to url: URL){
+        let thisFunction = "\(String(describing: self)).\(#function)"
+        do{
+            let data: Data = try emojiArtModel.json()
+//            print("\(thisFunction) json = \(String(data: data, encoding: .utf8) ?? "nil")")
+            try data.write(to: url)
+            print("\(thisFunction) success!")
+        }catch let encodingError where encodingError is EncodingError{
+            print("\(thisFunction) couldn't encode as JSON because \(encodingError):\(encodingError.localizedDescription)")
+        }catch let otherError{
+            print("\(thisFunction) error = \(otherError):\(otherError.localizedDescription)")
+        }
+    }
+    
     // MARK: - Intent(s)
     // includes setBackground addEmoji moveEmoji scaleEmoji and so on
     func setBackground(_ background:EmojiArtModel.Background){
@@ -101,6 +134,7 @@ class EmojiArtDocument: ObservableObject{
             emojiArtModel.emojis[index].size = Int((preSize*scale).rounded(.toNearestOrAwayFromZero))
         }
     }
+    
     
     
 }

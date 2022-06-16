@@ -8,11 +8,11 @@
 import Foundation
 // EmojiArt's main logical model
 
-struct EmojiArtModel{
+struct EmojiArtModel: Codable{
     var background = Background.blank
     var emojis = [Emoji]()
     
-    struct Emoji: Identifiable, Hashable {
+    struct Emoji: Identifiable, Hashable, Codable {
         var text: String
         // we use Int because we wan't to different model from view
         var x: Int  // offset from the center
@@ -26,6 +26,19 @@ struct EmojiArtModel{
             self.size = size
             self.id = id
         }
+    }
+    
+    func json() throws -> Data{
+        return try JSONEncoder().encode(self)
+    }
+    
+    init(json: Data) throws{
+        self = try JSONDecoder().decode(EmojiArtModel.self, from: json)
+    }
+    
+    init(url: URL) throws{
+        let data = try Data(contentsOf: url )
+        self = try EmojiArtModel(json: data)
     }
     
     init(){}
