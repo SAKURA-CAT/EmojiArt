@@ -8,6 +8,7 @@
 import SwiftUI
 
 class EmojiArtDocument: ObservableObject{
+    // MARK: - Basic value
     var emojis: [EmojiArtModel.Emoji] {emojiArtModel.emojis}
     
     var background: EmojiArtModel.Background {emojiArtModel.background}
@@ -31,7 +32,7 @@ class EmojiArtDocument: ObservableObject{
     
     
     init(){
-        if let url = Autosave.autosaveURL, let autosaveEmojiArt = try? EmojiArtModel(url: url){
+        if let url = AutosaveParams.autosaveURL, let autosaveEmojiArt = try? EmojiArtModel(url: url){
             emojiArtModel = autosaveEmojiArt
             fetchBackgorundImageDataIfNecessary()
         }else{
@@ -41,6 +42,7 @@ class EmojiArtDocument: ObservableObject{
         }
     }
     
+    // MARK: - File persistence function
     private func fetchBackgorundImageDataIfNecessary(){
         backgroundImage = nil
         switch emojiArtModel.background{
@@ -77,7 +79,7 @@ class EmojiArtDocument: ObservableObject{
         
     }
     
-    private struct Autosave{
+    private struct AutosaveParams{
         static let autosaveFilename = "Autosave.emojiart"
         static var autosaveURL: URL? {
             let documentDirection = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first  // in mac we also use .networkDomainMask
@@ -86,7 +88,7 @@ class EmojiArtDocument: ObservableObject{
     }
     
     private func autosave(){
-        if let url = Autosave.autosaveURL{
+        if let url = AutosaveParams.autosaveURL{
             save(to: url)
         }
     }
