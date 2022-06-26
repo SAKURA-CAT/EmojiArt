@@ -23,7 +23,7 @@ class EmojiArtDocument: ObservableObject{
     
     @Published private(set) var emojiArtModel:EmojiArtModel{
         didSet{
-            autosave()
+            scheduleAutoSave()
             if emojiArtModel.background != oldValue.background{
                 fetchBackgorundImageDataIfNecessary()
             }
@@ -42,7 +42,6 @@ class EmojiArtDocument: ObservableObject{
         }
     }
     
-    // MARK: - File persistence function
     private func fetchBackgorundImageDataIfNecessary(){
         backgroundImage = nil
         switch emojiArtModel.background{
@@ -79,11 +78,23 @@ class EmojiArtDocument: ObservableObject{
         
     }
     
+    // MARK: - File persistence function
+    // (auto) save
     private struct AutosaveParams{
         static let autosaveFilename = "Autosave.emojiart"
         static var autosaveURL: URL? {
             let documentDirection = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first  // in mac we also use .networkDomainMask
             return documentDirection?.appendingPathComponent(autosaveFilename)
+        }
+        static let coalescingInterval = 5.0
+    }
+    
+    private var autoSaveTimer: Timer?
+    
+    private func scheduleAutoSave(){
+        autoSaveTimer?.invalidate()
+        autoSaveTimer = Timer.scheduledTimer(withTimeInterval: AutosaveParams.coalescingInterval, repeats: false){ time in
+            self.autosave()
         }
     }
     

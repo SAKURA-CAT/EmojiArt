@@ -13,13 +13,11 @@ struct EmojiArtDocumentView: View {
     // MARK: - Basic value
     let defaultEmojiFontSize: CGFloat = 40
     
-    let testEmojis = "😀😷🦠💉👻👀🐶🌲🌎🌞🔥🍎⚽️🚗🚓🚲🛩🚁🚀🛸🏠⌚️🎁🗝🔐❤️⛔️❌❓✅⚠️🎶➕➖🏳️"
-    
     // MARK: - View body
     var body: some View {
         VStack(spacing: 0){
             documentBody
-            palette
+            PaletteChooser(emojiFontSize: defaultEmojiFontSize)
         }
     }
 
@@ -49,11 +47,6 @@ struct EmojiArtDocumentView: View {
             }
             .gesture(panGesture().simultaneously(with: zoomGestrue()))
         }
-    }
-    
-    var palette: some View{
-        ScrollingEmojisView(emojis: testEmojis)
-            .font(.system(size: defaultEmojiFontSize))
     }
     
     // MARK: - Intent(s)
@@ -182,44 +175,10 @@ struct EmojiArtDocumentView: View {
                 steadyStatePanOffset = steadyStatePanOffset + (finalGragGesture.translation / zoomScale)
             }
     }
-    
-    
-    
-    
-    
-
 }
 
 
 // MARK: - Preview
-struct ScrollingEmojisView: View{
-    let emojis: String
-    var body: some View{
-        ScrollView(.horizontal){
-            HStack{
-                ForEach(emojis.map{ String($0) }, id: \.self){ emoji in
-                    Text(emoji)
-                        .onDrag{ NSItemProvider(object: emoji as NSString)}
-                }
-            }
-        }
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         EmojiArtDocumentView(document: EmojiArtDocument())
